@@ -756,7 +756,9 @@ export function createFormControl<
   const trigger: UseFormTrigger<TFieldValues> = async (name, options = {}) => {
     let isValid;
     let validationResult;
-    const fieldNames = convertToArrayPayload(name) as InternalFieldName[];
+    const fieldNames = name ?
+      convertToArrayPayload(name) as InternalFieldName[] :
+      Object.keys(_fields) as InternalFieldName[];
 
     _subjects.state.next({
       isValidating: true,
@@ -771,7 +773,7 @@ export function createFormControl<
       validationResult = name
         ? !fieldNames.some((name) => get(errors, name))
         : isValid;
-    } else if (name) {
+    } else {
       validationResult = (
         await Promise.all(
           fieldNames.map(async (fieldName) => {
@@ -783,8 +785,6 @@ export function createFormControl<
         )
       ).every(Boolean);
       !(!validationResult && !_formState.isValid) && _updateValid();
-    } else {
-      validationResult = isValid = await executeBuiltInValidation(_fields);
     }
 
     _subjects.state.next({
